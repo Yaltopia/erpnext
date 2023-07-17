@@ -155,6 +155,7 @@ class Item(Document):
 					"brand": self.brand,
 					"currency": erpnext.get_default_currency(),
 					"price_list_rate": self.standard_rate,
+					"price_list_rate_v2": self.standard_rate_v2
 				}
 			)
 			item_price.insert()

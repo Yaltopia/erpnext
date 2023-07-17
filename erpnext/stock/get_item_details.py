@@ -452,6 +452,7 @@ def get_basic_details(args, item, overwrite_warehouse=True):
 			out["manufacturer_part_no"] = None
 			out["manufacturer"] = None
 	else:
+
 		data = frappe.get_value(
 			"Item", item.name, ["default_item_manufacturer", "default_manufacturer_part_no"], as_dict=1
 		)
@@ -463,7 +464,6 @@ def get_basic_details(args, item, overwrite_warehouse=True):
 					"manufacturer_part_no": data.default_manufacturer_part_no,
 				}
 			)
-
 	child_doctype = args.doctype + " Item"
 	meta = frappe.get_meta(child_doctype)
 	if meta.get_field("barcode"):
@@ -820,10 +820,12 @@ def get_price_list_rate(args, item_doc, out=None):
 				insert_item_price(args)
 			return out
 
-		out.price_list_rate = (
-			flt(price_list_rate) * flt(args.plc_conversion_rate) / flt(args.conversion_rate)
-		)
-
+		price_list_rate_new = []
+		for price in price_list_rate:
+			price_list_rate_new.append(
+				flt(price) * flt(args.plc_conversion_rate) / flt(args.conversion_rate)
+			)
+		out.price_list_rate = price_list_rate_new
 		if frappe.db.get_single_value("Buying Settings", "disable_last_purchase_rate"):
 			return out
 
@@ -894,7 +896,7 @@ def get_item_price(args, item_code, ignore_party=False):
 	ip = frappe.qb.DocType("Item Price")
 	query = (
 		frappe.qb.from_(ip)
-		.select(ip.name, ip.price_list_rate, ip.uom)
+		.select(ip.name, ip.price_list_rate, ip.price_list_rate_v2, ip.uom)
 		.where(
 			(ip.item_code == item_code)
 			& (ip.price_list == args.get("price_list"))
@@ -941,9 +943,9 @@ def get_price_list_rate_for(args, item_code):
 		"transaction_date": args.get("transaction_date"),
 		"batch_no": args.get("batch_no"),
 	}
-
 	item_price_data = 0
 	price_list_rate = get_item_price(item_price_args, item_code)
+
 	if price_list_rate:
 		desired_qty = args.get("qty")
 		if desired_qty and check_packing_list(price_list_rate[0][0], desired_qty, item_code):
@@ -966,12 +968,12 @@ def get_price_list_rate_for(args, item_code):
 			item_price_data = general_price_list_rate
 
 	if item_price_data:
-		if item_price_data[0][2] == args.get("uom"):
-			return item_price_data[0][1]
+		if item_price_data[0][3] == args.get("uom"):
+			return [item_price_data[0][1], item_price_data[0][2]]
 		elif not args.get("price_list_uom_dependant"):
 			return flt(item_price_data[0][1] * flt(args.get("conversion_factor", 1)))
 		else:
-			return item_price_data[0][1]
+			return [item_price_data[0][1], item_price_data[0][2]]
 
 
 def check_packing_list(price_list_rate_name, desired_qty, item_code):

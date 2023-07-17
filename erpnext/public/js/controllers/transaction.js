@@ -3,6 +3,7 @@
 
 
 erpnext.TransactionController = class TransactionController extends erpnext.taxes_and_totals {
+
 	setup() {
 		super.setup();
 		let me = this;
@@ -12,7 +13,6 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			var has_margin_field = frappe.meta.has_field(cdt, 'margin_type');
 
 			frappe.model.round_floats_in(item, ["rate", "price_list_rate"]);
-
 			if(item.price_list_rate) {
 				if(item.rate > item.price_list_rate && has_margin_field) {
 					// if rate is greater than price_list_rate, set margin
@@ -486,6 +486,9 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 						if(!r.exc) {
 							frappe.run_serially([
 								() => {
+									item.price_list_variants = r.message.price_list_rate;
+								},
+								() => {
 									var d = locals[cdt][cdn];
 									me.add_taxes_from_item_tax_template(d.item_tax_rate);
 									if (d.free_item_data && d.free_item_data.length > 0) {
@@ -566,13 +569,28 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		}
 	}
 
+	is_variant (doc, cdt, cdn) {
+		var me = this;
+		var item = frappe.get_doc(cdt, cdn);
+		var update_stock = 0, show_batch_dialog = 0;
+		if (item.is_variant) {
+			frappe.model.set_value(cdt, cdn, "price_list_rate", item.price_list_variants[1]);
+		}
+		else {
+			frappe.model.set_value(cdt, cdn, "price_list_rate", item.price_list_variants[0]);
+		}
+
+		cur_frm.refresh_fields();
+	}
+
 	price_list_rate(doc, cdt, cdn) {
 		var item = frappe.get_doc(cdt, cdn);
 		frappe.model.round_floats_in(item, ["price_list_rate", "discount_percentage"]);
-
 		// check if child doctype is Sales Order Item/Quotation Item and calculate the rate
-		if (in_list(["Quotation Item", "Sales Order Item", "Delivery Note Item", "Sales Invoice Item", "POS Invoice Item", "Purchase Invoice Item", "Purchase Order Item", "Purchase Receipt Item"]), cdt)
+		if (in_list(["Quotation Item", "Sales Order Item", "Delivery Note Item", "Sales Invoice Item", "POS Invoice Item", "Purchase Invoice Item", "Purchase Order Item", "Purchase Receipt Item"]), cdt) {
 			this.apply_pricing_rule_on_item(item);
+
+		}
 		else
 			item.rate = flt(item.price_list_rate * (1 - item.discount_percentage / 100.0),
 				precision("rate", item));

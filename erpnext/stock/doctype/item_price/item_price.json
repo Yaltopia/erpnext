@@ -27,6 +27,7 @@
   "currency",
   "col_br_1",
   "price_list_rate",
+  "price_list_rate_v2",
   "section_break_15",
   "valid_from",
   "lead_time_days",
@@ -214,13 +215,22 @@
    "fieldtype": "Link",
    "label": "Batch No",
    "options": "Batch"
+  },
+  {
+   "fieldname": "price_list_rate_v2",
+   "fieldtype": "Currency",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "label": "Rate V2",
+   "options": "currency",
+   "reqd": 1
   }
  ],
  "icon": "fa fa-flag",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-11-15 08:26:04.041861",
+ "modified": "2023-07-17 14:59:37.915510",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Item Price",
