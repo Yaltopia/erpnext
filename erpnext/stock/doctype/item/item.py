@@ -126,6 +126,48 @@ class Item(Document):
 		self.update_item_price()
 		self.update_website_item()
 
+	def before_save(self):
+		item_price_name = frappe.db.get_value("Item Price", {"item_code": self.name})
+
+		if item_price_name:
+
+			prev_doc = self.get_doc_before_save()
+			item_price = frappe.get_doc("Item Price", item_price_name)
+			# update price if only standard rate is changed
+			if ((prev_doc.standard_rate != self.standard_rate) or (prev_doc.standard_rate_v2 != self.standard_rate_v2)) and self.price_per_kg == prev_doc.price_per_kg:
+				if prev_doc.standard_rate != self.standard_rate:
+					item_price.price_list_rate = self.standard_rate
+					self.price_per_kg = self.standard_rate / self.weight_per_unit
+				if prev_doc.standard_rate_v2 != self.standard_rate_v2:
+					item_price.price_list_rate_v2 = self.standard_rate_v2
+					self.price_per_kg = self.standard_rate_v2 / self.weight_per_unit_v2
+
+			#update price if only price_per_kg changed
+			elif (prev_doc.price_per_kg != self.price_per_kg) and (prev_doc.standard_rate == self.standard_rate or prev_doc.standard_rate_v2 == self.standard_rate_v2):
+				self.standard_rate = self.price_per_kg * self.weight_per_unit
+				self.standard_rate_v2 = self.price_per_kg * self.weight_per_unit_v2
+				item_price.price_list_rate = self.price_per_kg * self.weight_per_unit
+				item_price.price_list_rate_v2 = self.price_per_kg * self.weight_per_unit_v2
+
+			#update price if both standard rate and price_per_kg changed
+			elif (prev_doc.price_per_kg != self.price_per_kg) and (prev_doc.standard_rate != self.standard_rate or prev_doc.standard_rate_v2 != self.standard_rate_v2):
+				if self.standard_rate !=  prev_doc.standard_rate and self.standard_rate_v2 == prev_doc.standard_rate_v2:
+					self.price_per_kg = self.standard_rate / self.weight_per_unit
+					item_price.price_list_rate = self.standard_rate
+					item_price.price_list_rate_v2 = self.price_per_kg * self.weight_per_unit_v2
+					self.standard_rate_v2 = self.price_per_kg * self.weight_per_unit_v2
+				elif self.standard_rate_v2 !=  prev_doc.standard_rate_v2 and self.standard_rate == prev_doc.standard_rate:
+					self.price_per_kg = self.standard_rate_v2 / self.weight_per_unit_v2
+					item_price.price_list_rate = self.price_per_kg * self.weight_per_unit
+					item_price.price_list_rate_v2 = self.standard_rate_v2
+					self.standard_rate = self.price_per_kg * self.weight_per_unit
+			item_price.save()
+
+
+
+
+
+
 	def validate_description(self):
 		"""Clean HTML description if set"""
 		if cint(frappe.db.get_single_value("Stock Settings", "clean_description_html")):
