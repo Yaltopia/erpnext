@@ -63,3 +63,23 @@ def update_item_pricing ():
 			item.save()
 		frappe.db.commit()
 		return True
+
+@frappe.whitelist()
+def create_buying_item_price():
+	with open ('/Users/yaredgd/frappe-bench/apps/erpnext/erpnext/stock/api/stock_repriced.csv') as csvfile:
+		spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+		for row in spamreader:
+			item_price_id = frappe.db.get_value("Item Price", {"item_code": row[0], "price_list": "Standard Buying"}, "name")
+			if item_price_id:
+				item_price = frappe.get_doc("Item Price", item_price_id)
+				item_price.price_list_rate = row[8]
+				item_price.save()
+			else:
+				item_price = frappe.new_doc("Item Price")
+				item_price.item_code = row[0]
+				item_price.price_list = 'Standard Buying'
+				item_price.price_list_rate = row[8]
+				item_price.currency = 'ETB'
+				item_price.save()
+		frappe.db.commit()
+		return True
