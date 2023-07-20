@@ -487,6 +487,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 							frappe.run_serially([
 								() => {
 									item.price_list_variants = r.message.price_list_rate;
+									item.weight_variants = r.message.weight_variants;
 								},
 								() => {
 									var d = locals[cdt][cdn];
@@ -574,22 +575,33 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		var item = frappe.get_doc(cdt, cdn);
 		var update_stock = 0, show_batch_dialog = 0;
 		if (item.is_variant) {
-			frappe.model.set_value(cdt, cdn, "price_list_rate", item.price_list_variants[1]);
+			frappe.model.set_value(cdt, cdn, "price_list_rate", item.weight_variants[1] * item.price_per_kg_soi);
+			frappe.model.set_value(cdt, cdn, "weight_per_unit", item.weight_variants[1]);
 		}
 		else {
-			frappe.model.set_value(cdt, cdn, "price_list_rate", item.price_list_variants[0]);
+			frappe.model.set_value(cdt, cdn, "price_list_rate", item.weight_variants[0] * item.price_per_kg_soi);
+			frappe.model.set_value(cdt, cdn, "weight_per_unit", item.weight_variants[0]);
 		}
+		frappe.model.set_value(cdt, cdn, "total_weight", item.weight_per_unit * item.qty);
 
-		cur_frm.refresh_fields();
+		// refresh the item row
+		me.calculate_net_weight();
+	}
+
+	price_per_kg_soi(doc, cdt, cdn) {
+		var me = this;
+		var item = frappe.get_doc(cdt, cdn);
+		var update_stock = 0, show_batch_dialog = 0;
+		frappe.model.set_value(cdt, cdn, "price_list_rate", item.price_per_kg_soi * item.weight_per_unit);
 	}
 
 	price_list_rate(doc, cdt, cdn) {
+		console.log("price_list_rate");
 		var item = frappe.get_doc(cdt, cdn);
 		frappe.model.round_floats_in(item, ["price_list_rate", "discount_percentage"]);
 		// check if child doctype is Sales Order Item/Quotation Item and calculate the rate
 		if (in_list(["Quotation Item", "Sales Order Item", "Delivery Note Item", "Sales Invoice Item", "POS Invoice Item", "Purchase Invoice Item", "Purchase Order Item", "Purchase Receipt Item"]), cdt) {
 			this.apply_pricing_rule_on_item(item);
-
 		}
 		else
 			item.rate = flt(item.price_list_rate * (1 - item.discount_percentage / 100.0),
@@ -1195,13 +1207,16 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 	}
 
 	calculate_net_weight(){
+		console.log("calculate_net_weight")
 		/* Calculate Total Net Weight then further applied shipping rule to calculate shipping charges.*/
 		var me = this;
 		this.frm.doc.total_net_weight= 0.0;
+		// create var items which is a list of all items in the table in realtime
+		var items = this.frm.doc.items || [];
+		for (var i =  0; i < items.length; i++) {
+			this.frm.doc.total_net_weight += flt(items[i].total_weight);
+		}
 
-		$.each(this.frm.doc["items"] || [], function(i, item) {
-			me.frm.doc.total_net_weight += flt(item.total_weight);
-		});
 		refresh_field("total_net_weight");
 		this.shipping_rule();
 	}

@@ -30,6 +30,7 @@
   "stock_qty",
   "section_break_16",
   "is_variant",
+  "price_per_kg_soi",
   "price_list_rate",
   "base_price_list_rate",
   "discount_and_margin",
@@ -170,6 +171,7 @@
    "depends_on": "eval: !parent.skip_delivery_note",
    "fieldname": "delivery_date",
    "fieldtype": "Date",
+   "hidden": 1,
    "in_list_view": 1,
    "label": "Delivery Date",
    "no_copy": 1,
@@ -481,6 +483,8 @@
    "label": "Item Weight Details"
   },
   {
+   "allow_in_quick_entry": 1,
+   "bold": 1,
    "fieldname": "weight_per_unit",
    "fieldtype": "Float",
    "label": "Weight Per Unit"
@@ -870,13 +874,30 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Use Variant Price",
+   "print_hide": 1,
+   "report_hide": 1,
+   "reqd": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "bold": 1,
+   "fetch_from": "item_code.price_per_kg",
+   "fetch_if_empty": 1,
+   "fieldname": "price_per_kg_soi",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Price/Kg",
+   "print_hide": 1,
+   "report_hide": 1,
    "reqd": 1
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-07-17 17:29:43.216918",
+ "modified": "2023-07-19 10:46:31.256872",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Sales Order Item",
