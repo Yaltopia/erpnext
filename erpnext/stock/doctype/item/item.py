@@ -127,7 +127,7 @@ class Item(Document):
 		self.update_website_item()
 
 	def before_save(self):
-		item_price_name = frappe.db.get_value("Item Price", {"item_code": self.name})
+		item_price_name = frappe.db.get_value("Item Price", {"item_code": self.name, "price_list": "Standard Selling"}, "name")
 
 		if item_price_name:
 
