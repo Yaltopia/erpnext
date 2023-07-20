@@ -217,20 +217,21 @@
    "options": "Batch"
   },
   {
+   "fetch_from": "item_code.standard_rate",
+   "fetch_if_empty": 1,
    "fieldname": "price_list_rate_v2",
    "fieldtype": "Currency",
    "in_filter": 1,
    "in_list_view": 1,
    "label": "Rate V2",
-   "options": "currency",
-   "reqd": 1
+   "options": "currency"
   }
  ],
  "icon": "fa fa-flag",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-07-17 14:59:37.915510",
+ "modified": "2023-07-20 13:03:15.682024",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Item Price",
