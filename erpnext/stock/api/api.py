@@ -83,3 +83,68 @@ def create_buying_item_price():
 				item_price.save()
 		frappe.db.commit()
 		return True
+
+@frappe.whitelist()
+def create_purchase_order ():
+	# get csv files that have the word repriced in their name from the directory
+	purchase_orders = []
+	for file in os.listdir('/Users/yaredgd/frappe-bench/apps/erpnext/erpnext/stock/api/'):
+		if file.endswith(".csv"):
+			if file.find('repriced') == -1:
+				continue
+
+			print(os.path.join("/Users/yaredgd/frappe-bench/apps/erpnext/erpnext/stock/api/", file))
+			csvfile = open(os.path.join("/Users/yaredgd/frappe-bench/apps/erpnext/erpnext/stock/api/", file))
+			spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+			purchase_order = frappe.new_doc("Purchase Order")
+			purchase_order.append("taxes", {
+				"charge_type": "On Net Total",
+				"account_head": "VAT - YT",
+				"description": "VAT 15% on Purchase",
+				"rate": 15,
+				"add_deduct_tax": "Add"
+			})
+			total_amount = 0
+			total_weight = 0
+			total_quantity = 0
+			for row in spamreader:
+				if row[0] == 'Supplier':
+					purchase_order.supplier =  row[1]
+					purchase_order.transaction_date = row[3]
+					purchase_order.schedule_date = row[3]
+					continue
+
+				item = frappe.db.get_value("Item", {"item_code": row[0]})
+
+				if item:
+					item_doc = frappe.get_doc("Item", item)
+					purchase_order.append("items", {
+						"item_code": row[0],
+						"schedule_date": purchase_order.schedule_date,
+						"uom": "Nos",
+						"qty": row[7],
+						"rate": row[8],
+						# "weight_per_unit": item_doc.weight_per_unit,
+						# "total_weight": float (row[7]) * item_doc.weight_per_unit,
+						"amount": float (row[7]) * float (row[8]),
+						"net_amount": float (row[7]) * float (row[8]),
+						"base_net_amount": float (row[7]) * float (row[8]),
+						"base_amount": float (row[7]) * float (row[8]),
+						"base_rate": float (row[8]),
+						"base_total": float (row[7]) * float (row[8]),
+
+
+					})
+					total_amount = total_amount + float (row[7]) * float (row[8])
+					total_weight = total_weight + float (row[7]) * item_doc.weight_per_unit
+					total_quantity = total_quantity + float (row[7])
+			purchase_order.net_total = total_amount
+			purchase_order.total_net_weight = total_weight
+			purchase_order.total_qty = total_quantity
+
+			purchase_order.set_missing_values()
+			purchase_orders.append(purchase_order)
+			# recalculates taxes and totals
+			purchase_order.save()
+	return purchase_orders
+

@@ -142,7 +142,6 @@ def get_item_details(args, doc=None, for_validate=False, overwrite_warehouse=Tru
 		out.amount = flt(args.qty) * flt(out.rate)
 
 	out = remove_standard_fields(out)
-	print ([item.weight_per_unit, item.weight_per_unit_v2])
 	out["weight_variants"] = [item.weight_per_unit, item.weight_per_unit_v2]
 	return out
 
