@@ -104,6 +104,8 @@ def create_purchase_order ():
 				"rate": 15,
 				"add_deduct_tax": "Add"
 			})
+			# disable rounding
+			purchase_order.disable_rounded_total = 1
 			total_amount = 0
 			total_weight = 0
 			total_quantity = 0
