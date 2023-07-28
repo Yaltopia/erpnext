@@ -822,11 +822,15 @@ def get_price_list_rate(args, item_doc, out=None):
 			return out
 
 		price_list_rate_new = []
-		for price in price_list_rate:
-			price_list_rate_new.append(
-				flt(price) * flt(args.plc_conversion_rate) / flt(args.conversion_rate)
-			)
-		out.price_list_rate = price_list_rate_new
+		if (type(price_list_rate) == list):
+			for price in price_list_rate:
+				price_list_rate_new.append(
+					flt(price) * flt(args.plc_conversion_rate) / flt(args.conversion_rate)
+				)
+			out.price_list_rate = price_list_rate_new
+		else:
+			out.price_list_rate = flt(price_list_rate) * flt(args.plc_conversion_rate) / flt(args.conversion_rate)
+
 		if frappe.db.get_single_value("Buying Settings", "disable_last_purchase_rate"):
 			return out
 

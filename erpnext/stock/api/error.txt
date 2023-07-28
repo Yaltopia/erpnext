@@ -1,0 +1,75 @@
+### App Versions
+```
+{
+	"erpnext": "14.27.1",
+	"frappe": "14.42.0",
+	"hrms": "14.8.0"
+}
+```
+### Route
+```
+Form/Purchase Order/PUR-ORD-2023-00003
+```
+### Traceback
+```
+Traceback (most recent call last):
+  File "apps/frappe/frappe/app.py", line 94, in application
+    response = frappe.api.handle()
+  File "apps/frappe/frappe/api.py", line 54, in handle
+    return frappe.handler.handle()
+  File "apps/frappe/frappe/handler.py", line 47, in handle
+    data = execute_cmd(cmd)
+  File "apps/frappe/frappe/handler.py", line 85, in execute_cmd
+    return frappe.call(method, **frappe.form_dict)
+  File "apps/frappe/frappe/__init__.py", line 1619, in call
+    return fn(*args, **newargs)
+  File "apps/frappe/frappe/model/mapper.py", line 36, in make_mapped_doc
+    return method(source_name)
+  File "apps/erpnext/erpnext/buying/doctype/purchase_order/purchase_order.py", line 506, in make_purchase_receipt
+    doc = get_mapped_doc(
+  File "apps/frappe/frappe/model/mapper.py", line 148, in get_mapped_doc
+    postprocess(source_doc, target_doc)
+  File "apps/erpnext/erpnext/buying/doctype/purchase_order/purchase_order.py", line 492, in set_missing_values
+    target.run_method("set_missing_values")
+  File "apps/frappe/frappe/model/document.py", line 914, in run_method
+    out = Document.hook(fn)(self, *args, **kwargs)
+  File "apps/frappe/frappe/model/document.py", line 1267, in composer
+    return composed(self, method, *args, **kwargs)
+  File "apps/frappe/frappe/model/document.py", line 1249, in runner
+    add_to_return_value(self, fn(self, *args, **kwargs))
+  File "apps/frappe/frappe/model/document.py", line 911, in fn
+    return method_object(*args, **kwargs)
+  File "apps/erpnext/erpnext/controllers/buying_controller.py", line 97, in set_missing_values
+    self.set_missing_item_details(for_validate)
+  File "apps/erpnext/erpnext/controllers/accounts_controller.py", line 549, in set_missing_item_details
+    ret = get_item_details(args, self, for_validate=True, overwrite_warehouse=False)
+  File "apps/erpnext/erpnext/stock/get_item_details.py", line 98, in get_item_details
+    out.update(get_price_list_rate(args, item))
+  File "apps/erpnext/erpnext/stock/get_item_details.py", line 825, in get_price_list_rate
+    for price in price_list_rate:
+TypeError: 'float' object is not iterable
+
+```
+### Request Data
+```
+{
+	"type": "POST",
+	"args": {
+		"method": "erpnext.buying.doctype.purchase_order.purchase_order.make_purchase_receipt",
+		"source_name": "PUR-ORD-2023-00003",
+		"args": null,
+		"selected_children": "{}"
+	},
+	"freeze": true,
+	"freeze_message": "Creating Purchase Receipt ...",
+	"headers": {},
+	"error_handlers": {},
+	"url": "/api/method/frappe.model.mapper.make_mapped_doc"
+}
+```
+### Response Data
+```
+{
+	"exception": "TypeError: 'float' object is not iterable"
+}
+```
